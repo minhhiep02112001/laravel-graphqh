@@ -123,8 +123,8 @@ return [
     // ]
     //
     'types' => [
-        'Book' => App\GraphQL\Types\BookType::class,
-        'User' => App\GraphQL\Types\UserType::class
+        //'Book' => App\GraphQL\Types\BookType::class,
+        //'User' => App\GraphQL\Types\UserType::class
         // ExampleType::class,
         // ExampleRelationType::class,
         // \Rebing\GraphQL\Support\UploadType::class,

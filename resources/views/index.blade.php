@@ -16,7 +16,23 @@
             <div class="card">
 
                 <div class="card-body">
-                    <div style="max-height: 600px; overflow: auto">
+                    <form class="row mb-3" id="form-input-search">
+
+                        <div class="col">
+                            <input type="text" class="form-control" id="search-name" placeholder="Search name ...">
+                        </div>
+
+                        <div class="col">
+                            <input type="text" class="form-control" id="search-email" placeholder="Search email ...">
+                        </div>
+
+                        <div class="col">
+                            <button type="button" class="btn btn-primary" id="btn-search-data">Search</button>
+                            <button type="reset" class="btn btn-warning" id="btn-reset-search-data">Cancel</button>
+                        </div>
+
+                    </form>
+                    <div style="max-height: 500px; overflow: auto">
                         <table class="table">
                             <thead>
                             <tr>
@@ -78,16 +94,18 @@
     const btnSubmitUpdateData = document.querySelector("#btn-submit-update-data");
     const titleActionDom = document.querySelector("#title-action");
     const formDataInput = document.querySelector("#form-input-data")
-
+    const formDataInputSearch = document.querySelector("#form-input-search")
+    const btnSubmitSearch = document.querySelector("#btn-search-data")
+    const btnResetSearch = document.querySelector("#btn-reset-search-data")
 
     window.onload = () => {
-
         callApiListUser().then(res => res.json()).then(data => {
             loadDomContentListUser(data.data.users);
         })
     }
 
     const loadDomContentListUser = rest => {
+        domContentListUser.innerHTML = '';
         rest.forEach((element, index) => {
             domContentListUser.innerHTML += `
                 <tr>
@@ -207,7 +225,7 @@
                         id: ${id},
                         name: "${obj.name}",
                         email: "${obj.email}",
-                        ${ obj.password ? `password: "${obj.password}", password_confirmation: "${obj.password_confirmation}"` : '' }
+                        ${obj.password ? `password: "${obj.password}", password_confirmation: "${obj.password_confirmation}"` : ''}
                     ){
                         id,
                         name,
@@ -250,6 +268,30 @@
         })
     }
 
+    const callApiSearchUser = (obj) => {
+        let str = '';
+        for (const strKey in obj) {
+            str += `${strKey}: "${obj[strKey]}", `
+        }
+        return fetch('http://127.0.0.1:8000/graphql', {
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query: `mutation{
+                    searchUser(
+                        ${str}
+                    ){
+                        id,
+                        name,
+                        email
+                    }
+                }`
+            })
+        })
+    }
+
     btnSubmitData.onclick = () => {
         const domElement = formDataInput.elements;
 
@@ -272,12 +314,36 @@
             name: domElement.name.value,
             email: domElement.email.value,
         }
-        if (domElement.password.value != ""){
+        if (domElement.password.value != "") {
             obj.password = domElement.password.value
-            obj.password_confirmation =  domElement.password_confirmation.value
+            obj.password_confirmation = domElement.password_confirmation.value
         }
 
-        callApiUpdateUser(domElement.id.value , obj)
+        callApiUpdateUser(domElement.id.value, obj)
+    }
+
+    btnSubmitSearch.onclick = () => {
+        const domElement = formDataInputSearch.elements;
+        var obj = {}
+        if (domElement['search-name'].value) {
+            obj.name = domElement['search-name'].value
+        }
+
+        if (domElement['search-email'].value) {
+            obj.email = domElement['search-email'].value
+        }
+
+        if (!(JSON.stringify(obj) === '{}')) {
+            callApiSearchUser(obj).then(res => res.json()).then(data => {
+                loadDomContentListUser(data.data.searchUser);
+            })
+        }
+    }
+
+    btnResetSearch.onclick = () => {
+        callApiListUser().then(res => res.json()).then(data => {
+            loadDomContentListUser(data.data.users);
+        })
     }
 
 </script>

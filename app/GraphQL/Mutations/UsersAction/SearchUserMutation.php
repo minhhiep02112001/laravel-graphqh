@@ -18,7 +18,7 @@ class SearchUserMutation extends Mutation
 
     public function type(): Type
     {
-        return GraphQL::type('User');
+        return Type::listOf(GraphQL::type('User'));
     }
 
     public function args(): array
@@ -26,7 +26,7 @@ class SearchUserMutation extends Mutation
         return [
             'id' => [
                 'name' => 'id',
-                'type' => Type::int(),
+                'type' => Type::int(Type::int()),
             ],
             'name' => [
                 'name' => 'name',
@@ -42,8 +42,11 @@ class SearchUserMutation extends Mutation
 
     public function resolve($root, $args)
     {
-        $users = User::where('id' , '=' , 10)->get();
-        dd($args);
+        $users = User::where(function ($q) use ($args) {
+            foreach ($args as $key => $value) {
+                $q->orWhere($key, 'like', "%{$value}%");
+            }
+        })->get();
 
         return $users;
     }
